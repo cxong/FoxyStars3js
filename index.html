@@ -34,15 +34,30 @@
       });
       var cube = new THREE.Mesh(geometry, material);
       scene.add(cube);
+      
+      // Skybox
+      var directions = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+      var materialArray = [];
+      for (var i = 0; i < 6; i++) {
+        materialArray.push( new THREE.MeshBasicMaterial({
+          map: THREE.ImageUtils.loadTexture( directions[i] + ".png" ),
+          side: THREE.BackSide
+        }));
+      }
+      var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+      var skyGeometry = new THREE.CubeGeometry( 900, 900, 900 );
+      var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+      scene.add( skyBox );
 
       camera.position.z = 5;
 
       // Render loop
       function render() {
+        requestAnimationFrame(render);
+        
         cube.rotation.x += 0.1;
         cube.rotation.y += 0.1;
-
-        requestAnimationFrame(render);
+        
         renderer.render(scene, camera);
       }
 
