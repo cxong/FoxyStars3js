@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <title>FoxyStars starring Starr the Foxy Fox</title>
+    <style>
+      body {
+        margin: 0px
+      }
+      canvas {
+        width: 100%;
+        height: 100%
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
+    <script>
+      var scene = new THREE.Scene();
+
+      // Set up camera
+      var fov = 75;
+      var aspectRatio = window.innerWidth / window.innerHeight;
+      var near = 0.1;
+      var far = 1000;
+      var camera = new THREE.PerspectiveCamera(fov, aspectRatio, near, far);
+
+      var renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Set up scene and objects
+      var geometry = new THREE.CubeGeometry(1, 1, 1);
+      var material = new THREE.MeshBasicMaterial({
+        color : 0x00ff00
+      });
+      var cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      camera.position.z = 5;
+
+      // Render loop
+      function render() {
+        cube.rotation.x += 0.1;
+        cube.rotation.y += 0.1;
+
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+      }
+
+      render();
+    </script>
+  </body>
+</html>
