@@ -15,6 +15,7 @@
     <script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
     <script>
       var scene = new THREE.Scene();
+      var projector = new THREE.Projector();
 
       // Set up camera
       var fov = 75;
@@ -48,8 +49,21 @@
       var skyGeometry = new THREE.CubeGeometry( 900, 900, 900 );
       var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
       scene.add( skyBox );
+      
+      // Ground
+      var groundMaterial = new THREE.MeshBasicMaterial({
+        color : 0xaa9933
+      });
+      var groundGeom = new THREE.PlaneGeometry(2000, 2000);
+      var ground = new THREE.Mesh( groundGeom, groundMaterial );
+      ground.rotation.x = -90;
+      ground.position.y = -5;
+      scene.add( ground );
 
       camera.position.z = 5;
+      
+      // Mouse
+      document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
       // Render loop
       function render() {
@@ -59,6 +73,30 @@
         cube.rotation.y += 0.1;
         
         renderer.render(scene, camera);
+      }
+      
+      function onDocumentMouseMove( event )
+      {
+        // normalise mouse coordinates
+        var mouse = {
+          x : ( event.clientX / window.innerWidth ) * 2 - 1,
+          y : -( event.clientY / window.innerHeight ) * 2 + 1  // screen to world!
+        };
+        
+        // project mouse onto imaginary plane, to get crosshair position
+        var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+        projector.unprojectVector( vector, camera );
+        // Note: weirdness with projection means we're unable to change mouse plane,
+        // instead we change camera position
+        var cameraPosition = new THREE.Vector3( camera.position.x, camera.position.y, 10 );
+        var ray = new THREE.Raycaster( cameraPosition, vector.sub( cameraPosition ).normalize() );
+        var mousePlaneGeom = new THREE.PlaneGeometry(1000, 1000);
+        var mousePlane = new THREE.Mesh( mousePlaneGeom, new THREE.MeshBasicMaterial() );
+        var intersect = ray.intersectObject( mousePlane );
+        if ( intersect.length > 0 ) {
+          cube.position.x = intersect[ 0 ].point.x;
+          cube.position.y = intersect[ 0 ].point.y;
+        }
       }
 
       render();
