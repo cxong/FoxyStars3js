@@ -16,6 +16,7 @@
     <script>
       var scene = new THREE.Scene();
       var projector = new THREE.Projector();
+      var flyTarget = new THREE.Vector3();
 
       // Set up camera
       var fov = 75;
@@ -29,12 +30,6 @@
       document.body.appendChild(renderer.domElement);
 
       // Set up scene and objects
-      var geometry = new THREE.CubeGeometry(1, 1, 1);
-      var material = new THREE.MeshBasicMaterial({
-        color : 0x00ff00
-      });
-      var cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
       
       // Skybox
       var directions = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
@@ -59,6 +54,45 @@
       ground.rotation.x = -90;
       ground.position.y = -5;
       scene.add( ground );
+      
+      // Plane properties
+      var geometry = new THREE.CubeGeometry(1, 1, 1);
+      var material = new THREE.MeshBasicMaterial({
+        color : 0x00ff00
+      });
+      var cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+      var fighter = {
+        mesh : cube, speed : 0.08, speedMax : 0.5, vel : new THREE.Vector3(), velDecay : 0.07,
+        moveTo : function (target) {
+          var delta = new THREE.Vector3();
+          delta.subVectors( target, this.mesh.position );
+          if (delta.length() < 0.1) {
+            this.mesh.position = target;
+            return;
+          }
+          target.sub( this.vel );
+          delta.subVectors( target, this.mesh.position );
+          delta.normalize();
+          delta.multiplyScalar( this.speed );
+          this.vel.add( delta );
+          if (this.vel.length() > this.speedMax) {
+            this.vel.normalize();
+            this.vel.multiplyScalar( this.speedMax );
+          }
+        },
+        update : function () {
+          this.mesh.position.add( this.vel );
+          var len = this.vel.length();
+          if (len > this.velDecay) {
+            len -= this.velDecay;
+          } else {
+            len = 0;
+          }
+          this.vel.normalize();
+          this.vel.multiplyScalar( len );
+        }
+      };
 
       camera.position.z = 5;
       
@@ -68,9 +102,9 @@
       // Render loop
       function render() {
         requestAnimationFrame(render);
-        
-        cube.rotation.x += 0.1;
-        cube.rotation.y += 0.1;
+
+        fighter.moveTo( flyTarget );
+        fighter.update();
         
         renderer.render(scene, camera);
       }
@@ -94,8 +128,7 @@
         var mousePlane = new THREE.Mesh( mousePlaneGeom, new THREE.MeshBasicMaterial() );
         var intersect = ray.intersectObject( mousePlane );
         if ( intersect.length > 0 ) {
-          cube.position.x = intersect[ 0 ].point.x;
-          cube.position.y = intersect[ 0 ].point.y;
+          flyTarget = intersect[ 0 ].point;
         }
       }
 
