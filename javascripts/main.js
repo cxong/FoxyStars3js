@@ -48,21 +48,49 @@ var material = new THREE.MeshBasicMaterial({
 var cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 var fighter = {
-  mesh : cube, speed : 0.08, speedMax : 0.5, vel : new THREE.Vector3(), velDecay : 0.07,
+  mesh : cube,
+  
+  // Current X position lane (0 = leftmost)
+  lane : 0,
+  
+  // Last X position, for moving to a new lane
+  // Fighter transitions from xLast to new lane X
+  xLast : 0,
+  
+  // Index of rightmost X position lane
+  // Total number of lanes is maxLane + 1
+  maxLane : 1,
+
+  // Total width of all lanes, rightmost - leftmost
+  laneSizeTotal : 8.0,
+  
+  // Counter for lerping X position
+  transitionCounter : 0,
+  
+  // Number of frames for lerping X position
+  transitionCounterMax : 30,
+  
+  // Helper function for getting X position for a lane index
+  getLaneX : function( lane ) {
+    return ( lane - ( this.maxLane / 2 ) ) * this.laneSizeTotal / ( this.maxLane + 1 );
+  },
+  
+  // Start lerping the fighter from its current X position to a new lane
   flap : function( xDir ) {
-    this.mesh.position.x = xDir * 0.5;
+    this.xLast = this.mesh.position.x;
+    this.lane = THREE.Math.clamp( this.lane + xDir, 0, this.maxLane );
+    this.transitionCounter = this.transitionCounterMax;
     console.log("flap " + this.mesh.position.x);
   },
+  
+  // lerp and others
   update : function () {
-    this.mesh.position.add( this.vel );
-    var len = this.vel.length();
-    if (len > this.velDecay) {
-      len -= this.velDecay;
-    } else {
-      len = 0;
-    }
-    this.vel.normalize();
-    this.vel.multiplyScalar( len );
+    // lerping X position
+    this.transitionCounter = Math.max( this.transitionCounter - 1, 0 );
+    var laneX = this.getLaneX( this.lane );
+    var laneWeight = ( this.transitionCounterMax - this.transitionCounter ) / this.transitionCounterMax;
+    var lastXWeight = 1.0 - laneWeight;
+    this.mesh.position.x = laneWeight * laneX + lastXWeight * this.xLast;
   }
 };
 
