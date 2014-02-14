@@ -37,7 +37,7 @@ var groundMaterial = new THREE.MeshBasicMaterial({
 var groundGeom = new THREE.PlaneGeometry(2000, 2000);
 var ground = new THREE.Mesh( groundGeom, groundMaterial );
 ground.rotation.x = -90;
-ground.position.y = -5;
+ground.position.y = -3;
 scene.add( ground );
 
 // Plane properties
@@ -49,6 +49,9 @@ var cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 var fighter = {
   mesh : cube,
+  
+  // y-velocity
+  velY : 0,
   
   // Current X position lane (0 = leftmost)
   lane : 0,
@@ -69,6 +72,10 @@ var fighter = {
   
   // Number of frames for lerping X position
   transitionCounterMax : 30,
+
+  flapStrength : 0.2,
+  
+  gravity : -0.013,
   
   // Helper function for getting X position for a lane index
   getLaneX : function( lane ) {
@@ -77,9 +84,13 @@ var fighter = {
   
   // Start lerping the fighter from its current X position to a new lane
   flap : function( xDir ) {
+    // Move to new lane
     this.xLast = this.mesh.position.x;
     this.lane = THREE.Math.clamp( this.lane + xDir, 0, this.maxLane );
     this.transitionCounter = this.transitionCounterMax;
+    
+    // flap upwards
+    this.velY = this.flapStrength;
     console.log("flap " + this.mesh.position.x);
   },
   
@@ -91,13 +102,19 @@ var fighter = {
     var laneWeight = ( this.transitionCounterMax - this.transitionCounter ) / this.transitionCounterMax;
     var lastXWeight = 1.0 - laneWeight;
     this.mesh.position.x = laneWeight * laneX + lastXWeight * this.xLast;
+    
+    // gravity
+    this.mesh.position.y += this.velY;
+    if ( this.mesh.position.y < ground.position.y ) {
+      // TODO: hit ground and die
+      this.mesh.position.y = ground.position.y;
+      this.velY = 0;
+    }
+    this.velY += this.gravity;
   }
 };
 
 camera.position.z = 5;
-
-// Mouse
-document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
 // Keyboard
 var keysPressed = {};
@@ -116,29 +133,6 @@ function render() {
   fighter.update();
   
   renderer.render(scene, camera);
-}
-
-function onDocumentMouseMove( event )
-{
-  // normalise mouse coordinates
-  var mouse = {
-    x : ( event.clientX / window.innerWidth ) * 2 - 1,
-    y : -( event.clientY / window.innerHeight ) * 2 + 1  // screen to world!
-  };
-  
-  // project mouse onto imaginary plane, to get crosshair position
-  var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
-  projector.unprojectVector( vector, camera );
-  // Note: weirdness with projection means we're unable to change mouse plane,
-  // instead we change camera position
-  var cameraPosition = new THREE.Vector3( camera.position.x, camera.position.y, 10 );
-  var ray = new THREE.Raycaster( cameraPosition, vector.sub( cameraPosition ).normalize() );
-  var mousePlaneGeom = new THREE.PlaneGeometry(1000, 1000);
-  var mousePlane = new THREE.Mesh( mousePlaneGeom, new THREE.MeshBasicMaterial() );
-  var intersect = ray.intersectObject( mousePlane );
-  if ( intersect.length > 0 ) {
-    flyTarget = intersect[ 0 ].point;
-  }
 }
   
 function onDocumentKeyDown( event ) {
