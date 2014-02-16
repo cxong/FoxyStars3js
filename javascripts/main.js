@@ -30,6 +30,8 @@ var skyGeometry = new THREE.CubeGeometry( 900, 900, 900 );
 var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
 scene.add( skyBox );
 
+// Game properties
+
 // Ground
 var groundMaterial = new THREE.MeshBasicMaterial({
   color : 0xaa9933
@@ -40,10 +42,27 @@ ground.rotation.x = -90;
 ground.position.y = -3;
 scene.add( ground );
 
+var skyY = 3;
+
+// Index of rightmost X position lane
+// Total number of lanes is maxLane + 1
+var maxLane = 2;
+var numLanes = maxLane + 1;
+
+// Total width of all lanes, rightmost - leftmost
+var laneSizeTotal = 8.0;
+
+var gravity = -0.008;
+  
+// Helper function for getting X position for a lane index
+function getLaneX( lane ) {
+  return ( lane - ( maxLane / 2 ) ) * laneSizeTotal / numLanes;
+}
+
 // Plane properties
-var geometry = new THREE.CubeGeometry(1, 1, 1);
+var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
 var material = new THREE.MeshBasicMaterial({
-  color : 0x00ff00
+  color : 0xffaa66
 });
 var cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
@@ -59,34 +78,20 @@ var fighter = {
   // Last X position, for moving to a new lane
   // Fighter transitions from xLast to new lane X
   xLast : 0,
-  
-  // Index of rightmost X position lane
-  // Total number of lanes is maxLane + 1
-  maxLane : 1,
 
-  // Total width of all lanes, rightmost - leftmost
-  laneSizeTotal : 8.0,
-  
   // Counter for lerping X position
   transitionCounter : 0,
   
   // Number of frames for lerping X position
   transitionCounterMax : 30,
 
-  flapStrength : 0.2,
-  
-  gravity : -0.013,
-  
-  // Helper function for getting X position for a lane index
-  getLaneX : function( lane ) {
-    return ( lane - ( this.maxLane / 2 ) ) * this.laneSizeTotal / ( this.maxLane + 1 );
-  },
+  flapStrength : 0.16,
   
   // Start lerping the fighter from its current X position to a new lane
   flap : function( xDir ) {
     // Move to new lane
     this.xLast = this.mesh.position.x;
-    this.lane = THREE.Math.clamp( this.lane + xDir, 0, this.maxLane );
+    this.lane = THREE.Math.clamp( this.lane + xDir, 0, maxLane );
     this.transitionCounter = this.transitionCounterMax;
     
     // flap upwards
@@ -98,7 +103,7 @@ var fighter = {
   update : function () {
     // lerping X position
     this.transitionCounter = Math.max( this.transitionCounter - 1, 0 );
-    var laneX = this.getLaneX( this.lane );
+    var laneX = getLaneX( this.lane );
     var laneWeight = ( this.transitionCounterMax - this.transitionCounter ) / this.transitionCounterMax;
     var lastXWeight = 1.0 - laneWeight;
     this.mesh.position.x = laneWeight * laneX + lastXWeight * this.xLast;
@@ -109,10 +114,46 @@ var fighter = {
       // TODO: hit ground and die
       this.mesh.position.y = ground.position.y;
       this.velY = 0;
+    } else if ( this.mesh.position.y > skyY ) {
+      // TODO: hit sky and die
+      this.mesh.position.y = skyY;
+      this.velY = 0;
     }
-    this.velY += this.gravity;
+    this.velY += gravity;
   }
 };
+
+// Pipes
+var pipes = new Array();
+function addPipe() {
+  for ( var i = 0; i < numLanes; i++ ) {
+    var pipe = new Pipe( laneSizeTotal / numLanes, skyY - ground.position.y );
+    pipe.setX( getLaneX( i ) );
+    pipe.setZ( -15 );
+    pipe.meshes.forEach(function(pipeMesh) {
+      scene.add( pipeMesh );
+    })
+    pipes.push( pipe );
+  }
+}
+function movePipes() {
+  pipes.forEach(function(pipe) {
+    pipe.setZ( pipe.z + 0.1 );
+    console.log(pipe.z);
+  })
+}
+function destroyCompletePipes() {
+  // Remove pipes that have gone past the player
+  for ( var i = pipes.length - 1; i >= 0; i-- ) {
+    var pipe = pipes[ i ];
+    if ( pipe.z > 0.5 ) {
+      pipe.meshes.forEach(function(pipeMesh) {
+        scene.remove( pipeMesh );
+      });
+      pipes.splice( i );
+    }
+  }
+}
 
 camera.position.z = 5;
 
@@ -123,6 +164,11 @@ document.addEventListener("keydown", onDocumentKeyDown, false);
 // Render loop
 function render() {
   requestAnimationFrame(render);
+  
+  if ( pipes.length < 1 ) {
+    addPipe();
+  }
+  movePipes();
 
   if ( keysPressed.left ) {
     fighter.flap(-1);
@@ -131,6 +177,8 @@ function render() {
   }
   keysPressed = {};
   fighter.update();
+  
+  destroyCompletePipes();
   
   renderer.render(scene, camera);
 }
