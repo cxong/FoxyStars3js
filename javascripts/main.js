@@ -124,7 +124,7 @@ var fighter = {
 };
 
 // Pipes
-var pipes = new Array();
+var pipes = [];
 function addPipe() {
   for ( var i = 0; i < numLanes; i++ ) {
     var pipe = new Pipe( laneSizeTotal / numLanes, skyY - ground.position.y );
@@ -132,7 +132,7 @@ function addPipe() {
     pipe.setZ( -15 );
     pipe.meshes.forEach(function(pipeMesh) {
       scene.add( pipeMesh );
-    })
+    });
     pipes.push( pipe );
   }
 }
@@ -140,7 +140,7 @@ function movePipes() {
   pipes.forEach(function(pipe) {
     pipe.setZ( pipe.z + 0.1 );
     console.log(pipe.z);
-  })
+  });
 }
 function destroyCompletePipes() {
   // Remove pipes that have gone past the player
@@ -156,6 +156,9 @@ function destroyCompletePipes() {
 }
 
 camera.position.z = 5;
+
+// Mouse
+document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
 // Keyboard
 var keysPressed = {};
@@ -182,7 +185,16 @@ function render() {
   
   renderer.render(scene, camera);
 }
-  
+
+function onDocumentMouseDown( event ) {
+  var x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  //var y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+  if ( x < 0 ) {
+    keysPressed.left = true;
+  } else if ( x > 0 ) {
+    keysPressed.right = true;
+  }
+}
 function onDocumentKeyDown( event ) {
   var keyCode = event.which;
   if ( keyCode == 37 ) {  // left
