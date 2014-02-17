@@ -47,7 +47,7 @@ var groundMaterial = new THREE.MeshBasicMaterial({
 });
 var groundGeom = new THREE.PlaneGeometry(2000, 2000);
 var ground = new THREE.Mesh( groundGeom, groundMaterial );
-ground.rotation.x = -90;
+ground.rotation.x = -90 * ( Math.PI / 180 );
 ground.position.y = -3;
 scene.add( ground );
 
@@ -62,11 +62,6 @@ var numLanes = maxLane + 1;
 var laneSizeTotal = 8.0;
 
 var gravity = -0.008;
-  
-// Helper function for getting X position for a lane index
-function getLaneX( lane ) {
-  return ( lane - ( maxLane / 2 ) ) * laneSizeTotal / numLanes;
-}
 
 // Plane properties
 var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
@@ -94,7 +89,7 @@ var fighter = {
   // Number of frames for lerping X position
   transitionCounterMax : 30,
 
-  flapStrength : 0.16,
+  flapStrength : 0.14,
   
   // Start lerping the fighter from its current X position to a new lane
   flap : function( xDir ) {
@@ -133,36 +128,7 @@ var fighter = {
 };
 
 // Pipes
-var pipes = [];
-function addPipe() {
-  for ( var i = 0; i < numLanes; i++ ) {
-    var pipe = new Pipe( laneSizeTotal / numLanes, skyY - ground.position.y );
-    pipe.setX( getLaneX( i ) );
-    pipe.setZ( -15 );
-    pipe.meshes.forEach(function(pipeMesh) {
-      scene.add( pipeMesh );
-    });
-    pipes.push( pipe );
-  }
-}
-function movePipes() {
-  pipes.forEach(function(pipe) {
-    pipe.setZ( pipe.z + 0.1 );
-    console.log(pipe.z);
-  });
-}
-function destroyCompletePipes() {
-  // Remove pipes that have gone past the player
-  for ( var i = pipes.length - 1; i >= 0; i-- ) {
-    var pipe = pipes[ i ];
-    if ( pipe.z > 0.5 ) {
-      pipe.meshes.forEach(function(pipeMesh) {
-        scene.remove( pipeMesh );
-      });
-      pipes.splice( i );
-    }
-  }
-}
+var pipes = new PipeMaker( 1, numLanes, laneSizeTotal, skyY - ground.position.y );
 
 camera.position.z = 5;
 
@@ -177,10 +143,7 @@ document.addEventListener("keydown", onDocumentKeyDown, false);
 function render() {
   requestAnimationFrame(render);
   
-  if ( pipes.length < 1 ) {
-    addPipe();
-  }
-  movePipes();
+  pipes.update( scene );
 
   if ( keysPressed.left ) {
     fighter.flap(-1);
@@ -190,7 +153,7 @@ function render() {
   keysPressed = {};
   fighter.update();
   
-  destroyCompletePipes();
+  pipes.destroyCompletePipes( scene );
   
   renderer.render(scene, camera);
 }
