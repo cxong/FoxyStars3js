@@ -30,6 +30,15 @@ var skyGeometry = new THREE.CubeGeometry( 900, 900, 900 );
 var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
 scene.add( skyBox );
 
+// Controls overlay
+var overlayMaterial = new THREE.MeshBasicMaterial({
+  map: THREE.ImageUtils.loadTexture( "controls_overlay.png" ),
+  transparent: true, opacity: 0.5
+});
+var overlayGeometry = new THREE.PlaneGeometry( 800 / 96, 480 / 96 );
+var overlay = new THREE.Mesh( overlayGeometry, overlayMaterial );
+scene.add( overlay );
+
 // Game properties
 
 // Ground
