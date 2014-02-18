@@ -1,3 +1,12 @@
+// Pipes are big vertical structures that move from way in front of the camera
+// towards the camera. There are gaps in the pipes at random places,
+// and represent obstacles for the fighter to fly through.
+// There is a set of pipes per vertical lane, each with its gap in a
+// different position.
+// The PipeMaker is a helper class for creating and tracking the pipes, so that
+// pipes occur at regular intervals and are removed once they move past the
+// fighter.
+
 // Helper function for getting X position for a lane index
 function getLaneX( lane ) {
   return ( lane - ( maxLane / 2 ) ) * laneSizeTotal / numLanes;
@@ -7,8 +16,10 @@ var Pipe = function( width, height ) {
   // Number of segments where the pipe opening could be
   var numSegments = 4;
 
+  // The segment index where there will be a gap
   this.openSegment = Math.floor( Math.random() * numSegments );
-  
+
+  // Meshes for the pipe, one per segment (except for the gap)
   var geometry = new THREE.CubeGeometry( width, height / numSegments, 1 );
   var material = new THREE.MeshBasicMaterial({
     color : 0x00cc00
@@ -29,6 +40,8 @@ var Pipe = function( width, height ) {
     this.meshes.push( mesh );
   }
 
+  // Modify X and Z positions for the pipes
+  // The Pipe object encompasses multiple sections that are moved together
   this.x = 0;
   this.setX = function( x ) {
     this.x = x;
@@ -46,14 +59,28 @@ var Pipe = function( width, height ) {
 };
 
 var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
+  // Colleciton of pipes: note that there is one per lane!
   this.pipes = [];
+
+  // The Z position of the farthest pipes. This determines whether we add another pipe
   this.lastPipeZ = 0;
+
   this.numLanes = numLanes;
+
+  // Number of pipe collections, rather than pipes. Pipes is this times numLanes
   this.numPipes = numPipes;
+
   this.laneSizeTotal = laneSizeTotal;
   this.heightTotal = heightTotal;
+
+  // Z position where new pipes appear
   this.zStart = -15;
+
+  // Z position where pipes are removed
   this.zEnd = 0.5;
+
+  // When the lastPipeZ exceeds this value, we need to place another pipe
+  // This is calculated so that we have pipes spaced at equal intervals
   this.addPipeThresholdZ = this.zStart - ( this.zStart / this.numPipes );
   
   this.addPipe = function( scene ) {
@@ -69,7 +96,8 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
       this.pipes.push( pipe );
     }
   };
-  
+
+  // Move every pipe forward
   this.movePipes = function() {
     this.lastPipeZ = this.zEnd;
     for ( var i = 0; i < this.pipes.length; i++ ) {
@@ -78,7 +106,8 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
       this.lastPipeZ = Math.min( this.lastPipeZ, pipe.z );
     }
   };
-  
+
+  // Move pipes, and add if necessary
   this.update = function( scene ) {
     //console.log( this.pipes.length + ", " + this.lastPipeZ + ", " + this.addPipeThresholdZ );
     if ( this.pipes.length < this.numPipes * this.numLanes &&
@@ -88,7 +117,8 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
     }
     this.movePipes();
   };
-  
+
+  // Remove pipes that are past the fighter
   this.destroyCompletePipes = function( scene ) {
     // Remove pipes that have gone past the player
     for ( var i = this.pipes.length - 1; i >= 0; i-- ) {
