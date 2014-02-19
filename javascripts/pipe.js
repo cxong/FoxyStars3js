@@ -12,12 +12,16 @@ function getLaneX( lane ) {
   return ( lane - ( maxLane / 2 ) ) * laneSizeTotal / numLanes;
 }
 
-var Pipe = function( width, height ) {
+var Pipe = function( width, height, hasOpenSegment ) {
   // Number of segments where the pipe opening could be
-  var numSegments = 4;
+  var numSegments = 5;
 
   // The segment index where there will be a gap
-  this.openSegment = Math.floor( Math.random() * numSegments );
+  if ( hasOpenSegment ) {
+    this.openSegment = Math.floor( Math.random() * ( numSegments - 2 ) + 1 );
+  } else {
+    this.openSegment = -1;
+  }
 
   // Meshes for the pipe, one per segment (except for the gap)
   this.width = width;
@@ -96,7 +100,7 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
   this.heightTotal = heightTotal;
 
   // Z position where new pipes appear
-  this.zStart = -15;
+  this.zStart = -10;
 
   // Z position where pipes are removed
   this.zEnd = 0.5;
@@ -104,10 +108,14 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
   // When the lastPipeZ exceeds this value, we need to place another pipe
   // This is calculated so that we have pipes spaced at equal intervals
   this.addPipeThresholdZ = this.zStart - ( this.zStart / this.numPipes );
-  
+
   this.addPipe = function( scene ) {
+    // Add normal middle-lanes, ones with open segments
+    // Also add a no-open-segment at the left and right
     for ( var i = 0; i < this.numLanes; i++ ) {
-      var pipe = new Pipe( this.laneSizeTotal / this.numLanes, this.heightTotal );
+    var width = this.laneSizeTotal / this.numLanes;
+      var hasOpenSegment = i != 0 && i != this.numLanes - 1;
+      var pipe = new Pipe( width, this.heightTotal, hasOpenSegment );
       pipe.setX( getLaneX( i ) );
       pipe.setZ( this.zStart );
       this.lastPipeZ = pipe.z;

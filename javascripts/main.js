@@ -55,7 +55,7 @@ var skyY = 3;
 
 // Index of rightmost X position lane
 // Total number of lanes is maxLane + 1
-var maxLane = 2;
+var maxLane = 4;
 var numLanes = maxLane + 1;
 
 // Total width of all lanes, rightmost - leftmost
@@ -63,7 +63,28 @@ var laneSizeTotal = 8.0;
 
 var gravity = -0.008;
 
-var score = 0;
+// Score
+function Score() {
+  this.value = 0;
+  this.scoreText = document.createElement('div');
+  this.scoreText.style.position = 'absolute';
+  this.scoreText.style.width = 100;
+  this.scoreText.style.height = 100;
+  this.scoreText.innerHTML = this.value;
+  this.scoreText.style.top = 200 + 'px';
+  this.scoreText.style.left = 200 + 'px';
+  document.body.appendChild( this.scoreText );
+  
+  this.change = function( delta ) {
+    this.value += delta;
+    this.scoreText.innerHTML = this.value;
+  }
+  this.set = function( value ) {
+    this.value = value;
+    this.scoreText.innerHTML = this.value;
+  }
+}
+var score = new Score();
 
 // Plane properties
 var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
@@ -175,11 +196,11 @@ function render() {
     // A set of pipes has passed the figher; check if the figher flew through it
     if ( pipes.isFighterCollides( fighter.mesh.position ) ) {
       // We've hit a pipe; TODO: die
-      score = 0;
+      score.set( 0 );
       dieSound.play();
     } else {
       // Flew through pipes, success!
-      score++;
+      score.change( 1 );
       passSound.play();
     }
     console.log( "Score: " + score );
