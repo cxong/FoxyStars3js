@@ -139,16 +139,20 @@ var fighter = {
     
     // gravity
     this.mesh.position.y += this.velY;
-    if ( this.mesh.position.y < ground.position.y ) {
-      // TODO: hit ground and die
-      this.mesh.position.y = ground.position.y;
-      this.velY = 0;
-    } else if ( this.mesh.position.y > skyY ) {
-      // TODO: hit sky and die
+    if ( this.mesh.position.y > skyY ) {
+      // hit sky; just block off
       this.mesh.position.y = skyY;
       this.velY = 0;
     }
     this.velY += gravity;
+  },
+  
+  reset : function() {
+    this.mesh.position = new THREE.Vector3( 0, 0, 0 );
+    this.velY = 0;
+    this.lane = 0;
+    this.xLast = 0;
+    this.transitionCounter = 0;
   }
 };
 
@@ -178,6 +182,13 @@ var flapSound = new Sound( 'sounds/phaseJump2.mp3' );
 var passSound = new Sound( 'sounds/powerUp2.mp3' );
 var dieSound = new Sound( 'sounds/spaceTrash4.mp3' );
 
+// Reset everything
+function reset() {
+  pipes.reset( scene );
+  fighter.reset();
+  score.set( 0 );
+}
+
 // Render loop
 function render() {
   requestAnimationFrame(render);
@@ -192,11 +203,17 @@ function render() {
   keysPressed = {};
   fighter.update();
   
+  // Check ground collision
+  if ( fighter.mesh.position.y < ground.position.y ) {
+    reset();
+    dieSound.play();
+  }
+  
   if ( pipes.hasPipesPassed( fighter.mesh.position ) ) {
     // A set of pipes has passed the figher; check if the figher flew through it
     if ( pipes.isFighterCollides( fighter.mesh.position ) ) {
       // We've hit a pipe; TODO: die
-      score.set( 0 );
+      reset();
       dieSound.play();
     } else {
       // Flew through pipes, success!

@@ -192,4 +192,17 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
       this.lastPipeZ = this.zEnd;
     }
   };
+  
+  this.reset = function( scene ) {
+    // Remove all pipes
+    for ( var i = this.pipes.length - 1; i >= 0; i-- ) {
+      var pipe = this.pipes[ i ];
+      for ( var j = 0; j < pipe.meshes.length; j++ ) {
+        var pipeMesh = pipe.meshes[j];
+        scene.remove( pipeMesh );
+      }
+    }
+    this.pipes = [];
+    this.lastPipeZ = 0;
+  }
 };
