@@ -20,7 +20,9 @@ var Pipe = function( width, height ) {
   this.openSegment = Math.floor( Math.random() * numSegments );
 
   // Meshes for the pipe, one per segment (except for the gap)
-  var geometry = new THREE.CubeGeometry( width, height / numSegments, 1 );
+  this.width = width;
+  this.height = height / numSegments;
+  var geometry = new THREE.CubeGeometry( this.width, this.height, 1 );
   var material = new THREE.MeshBasicMaterial({
     color : 0x00cc00
   });
@@ -45,17 +47,37 @@ var Pipe = function( width, height ) {
   this.x = 0;
   this.setX = function( x ) {
     this.x = x;
-    this.meshes.forEach(function(mesh) {
+    for ( var i = 0; i < this.meshes.length; i++ ) {
+      var mesh = this.meshes[i];
       mesh.position.x = x;
-    });
+    }
   };
   this.z = 0;
+  this.lastZ = 0;
   this.setZ = function( z ) {
+    this.lastZ = this.z;
     this.z = z;
-    this.meshes.forEach(function(mesh) {
+    for ( var i = 0; i < this.meshes.length; i++ ) {
+      var mesh = this.meshes[i];
       mesh.position.z = z;
-    });
+    }
   };
+  
+  // For all the pipe sections in this pipe, find if any
+  // collides with the fighter's position
+  // (regardless of Z position)
+  this.isFighterCollides = function( position ) {
+    for ( var i = 0; i < this.meshes.length; i++ ) {
+      var mesh = this.meshes[i];
+      if (mesh.position.x - this.width / 2 <= position.x &&
+          mesh.position.x + this.width / 2 >= position.x &&
+          mesh.position.y - this.height / 2 <= position.y &&
+          mesh.position.y + this.height / 2 >= position.y) {
+        return true;
+      }
+    }
+    return false;
+  }
 };
 
 var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
@@ -117,6 +139,33 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
     }
     this.movePipes();
   };
+  
+  // Check if any pipes have moved past the position's Z value
+  // since last being moved
+  this.hasPipesPassed = function( position ) {
+    for ( var i = 0; i < this.pipes.length; i++ ) {
+      var pipe = this.pipes[i];
+      if ( pipe.lastZ < position.z && pipe.z >= position.z ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // For all the pipes that the fighter has flied past
+  // (denoted by z arg), find if any collides with the
+  // fighter's position
+  this.isFighterCollides = function( position ) {
+    for ( var i = 0; i < this.pipes.length; i++ ) {
+      var pipe = this.pipes[i];
+      if ( pipe.lastZ < position.z && pipe.z >= position.z ) {
+        if ( pipe.isFighterCollides( position ) ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   // Remove pipes that are past the fighter
   this.destroyCompletePipes = function( scene ) {

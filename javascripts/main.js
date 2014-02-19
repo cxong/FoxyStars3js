@@ -63,6 +63,8 @@ var laneSizeTotal = 8.0;
 
 var gravity = -0.008;
 
+var score = 0;
+
 // Plane properties
 var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
 var material = new THREE.MeshBasicMaterial({
@@ -100,6 +102,8 @@ var fighter = {
     
     // flap upwards
     this.velY = this.flapStrength;
+    
+    flapSound.play();
     console.log("flap " + this.mesh.position.x);
   },
   
@@ -139,6 +143,20 @@ document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 var keysPressed = {};
 document.addEventListener("keydown", onDocumentKeyDown, false);
 
+// Sound
+var Sound = function ( source ) {
+  var audio = document.createElement( 'audio' );
+  var aSource = document.createElement( 'source' );
+  aSource.src = source;
+  audio.appendChild( aSource );
+  this.play = function () {
+    audio.play();
+  }
+}
+var flapSound = new Sound( 'sounds/phaseJump2.mp3' );
+var passSound = new Sound( 'sounds/powerUp2.mp3' );
+var dieSound = new Sound( 'sounds/spaceTrash4.mp3' );
+
 // Render loop
 function render() {
   requestAnimationFrame(render);
@@ -152,6 +170,20 @@ function render() {
   }
   keysPressed = {};
   fighter.update();
+  
+  if ( pipes.hasPipesPassed( fighter.mesh.position ) ) {
+    // A set of pipes has passed the figher; check if the figher flew through it
+    if ( pipes.isFighterCollides( fighter.mesh.position ) ) {
+      // We've hit a pipe; TODO: die
+      score = 0;
+      dieSound.play();
+    } else {
+      // Flew through pipes, success!
+      score++;
+      passSound.play();
+    }
+    console.log( "Score: " + score );
+  }
   
   pipes.destroyCompletePipes( scene );
   
