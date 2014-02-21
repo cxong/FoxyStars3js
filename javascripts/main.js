@@ -15,15 +15,13 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Set up scene and objects
-var loc = window.location.href;
-loc = loc.substring(0, loc.lastIndexOf('/')) + '/';
 
 // Skybox
 var directions = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
 var materialArray = [];
 for (var i = 0; i < 6; i++) {
   materialArray.push( new THREE.MeshBasicMaterial({
-    map: THREE.ImageUtils.loadTexture( loc + directions[i] + ".png" ),
+    //map: THREE.ImageUtils.loadTexture( directions[i] + ".png" ),
     side: THREE.BackSide
   }));
 }
@@ -33,8 +31,9 @@ var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
 scene.add( skyBox );
 
 // Controls overlay
+var overlayMap = THREE.ImageUtils.loadTexture( "controls_overlay.png" );
 var overlayMaterial = new THREE.MeshBasicMaterial({
-  map: THREE.ImageUtils.loadTexture( loc + "controls_overlay.png" ),
+  map: overlayMap,
   transparent: true, opacity: 0.5
 });
 var overlayGeometry = new THREE.PlaneGeometry( 800 / 96, 480 / 96 );
