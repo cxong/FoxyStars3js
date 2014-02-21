@@ -170,12 +170,12 @@ document.addEventListener("keydown", onDocumentKeyDown, false);
 
 // Sound
 var Sound = function ( source ) {
-  var audio = document.createElement( 'audio' );
-  var aSource = document.createElement( 'source' );
-  aSource.src = source;
-  audio.appendChild( aSource );
+  //var audio = document.createElement( 'audio' );
+  //var aSource = document.createElement( 'source' );
+  //aSource.src = source;
+  //audio.appendChild( aSource );
   this.play = function () {
-    audio.play();
+    //audio.play();
   }
 }
 var flapSound = new Sound( 'sounds/phaseJump2.mp3' );
