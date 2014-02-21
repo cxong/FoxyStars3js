@@ -21,7 +21,7 @@ var directions = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
 var materialArray = [];
 for (var i = 0; i < 6; i++) {
   materialArray.push( new THREE.MeshBasicMaterial({
-    //map: THREE.ImageUtils.loadTexture( directions[i] + ".png" ),
+    map: THREE.ImageUtils.loadTexture( directions[i] + ".png" ),
     side: THREE.BackSide
   }));
 }
@@ -88,14 +88,22 @@ function Score() {
 var score = new Score();
 
 // Plane properties
-var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
-var material = new THREE.MeshBasicMaterial({
-  color : 0xffaa66
-});
-var cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
-var fighter = {
-  mesh : cube,
+var dae;
+var fighter;
+var loader = new THREE.ColladaLoader();
+loader.options.convertUpAxis = true;
+loader.load( 'fighter.dae', function ( collada ) {
+  dae = collada.scene;
+  skin = collada.skins[ 0 ];
+  dae.scale.x = dae.scale.y = dae.scale.z = 0.4;
+  dae.rotation.y = -Math.PI;
+  dae.updateMatrix();
+  scene.add( dae );
+  fighter.mesh = dae;
+  render();
+} );
+fighter = {
+  mesh : null,
   
   // y-velocity
   velY : 0,
@@ -137,6 +145,8 @@ var fighter = {
     var laneWeight = ( this.transitionCounterMax - this.transitionCounter ) / this.transitionCounterMax;
     var lastXWeight = 1.0 - laneWeight;
     this.mesh.position.x = laneWeight * laneX + lastXWeight * this.xLast;
+    var isFlapRight = laneX > this.xLast;
+    this.mesh.rotation.z = laneWeight * 2 * Math.PI * (isFlapRight ? 1 : -1);
     
     // gravity
     this.mesh.position.y += this.velY;
@@ -246,5 +256,3 @@ function onDocumentKeyDown( event ) {
     keysPressed.right = true;
   }
 }
-
-render();
