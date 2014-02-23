@@ -35,12 +35,13 @@ scene.add( skyBox );
 // Ground
 var groundMatMap = THREE.ImageUtils.loadTexture( "grass14.png" );
 groundMatMap.wrapS = groundMatMap.wrapT = THREE.RepeatWrapping;
-groundMatMap.repeat.set( 2000.0 / 5, 2000.0 / 5 );
+var groundSize = 2000.0;
+groundMatMap.repeat.set( groundSize / 5, groundSize / 5 );
 groundMatMap.anisotropy = renderer.getMaxAnisotropy();
 var groundMaterial = new THREE.MeshBasicMaterial({
   map : groundMatMap
 });
-var groundGeom = new THREE.PlaneGeometry(2000, 2000);
+var groundGeom = new THREE.PlaneGeometry( groundSize, groundSize );
 var ground = new THREE.Mesh( groundGeom, groundMaterial );
 ground.rotation.x = -90 * ( Math.PI / 180 );
 ground.position.y = -3;
@@ -139,7 +140,8 @@ fighter = {
 };
 
 // Pipes
-var pipes = new PipeMaker( 1, numLanes, laneSizeTotal, skyY - ground.position.y );
+var speed = 0.1;
+var pipes = new PipeMaker( 1, numLanes, laneSizeTotal, skyY - ground.position.y, speed );
 
 camera.position.z = 5;
 
@@ -183,6 +185,7 @@ function render() {
 
   if ( gameState == "playing" ) {
     pipes.update( scene );
+    groundMatMap.offset.y += speed * 80 / (groundSize / 5);
   
     if ( keysPressed.left ) {
       fighter.flap(-1);

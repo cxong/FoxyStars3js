@@ -79,7 +79,7 @@ var Pipe = function( width, height, hasOpenSegment ) {
   };
 };
 
-var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
+var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal, speed ) {
   // Colleciton of pipes: note that there is one per lane!
   this.pipes = [];
 
@@ -127,7 +127,7 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
     this.lastPipeZ = this.zEnd;
     for ( var i = 0; i < this.pipes.length; i++ ) {
       var pipe = this.pipes[i];
-      pipe.setZ( pipe.z + 0.1 );
+      pipe.setZ( pipe.z + speed );
       this.lastPipeZ = Math.min( this.lastPipeZ, pipe.z );
     }
   };
