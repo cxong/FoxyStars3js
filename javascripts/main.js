@@ -33,8 +33,12 @@ scene.add( skyBox );
 // Game properties
 
 // Ground
+var groundMatMap = THREE.ImageUtils.loadTexture( "grass14.png" );
+groundMatMap.wrapS = groundMatMap.wrapT = THREE.RepeatWrapping;
+groundMatMap.repeat.set( 2000.0 / 5, 2000.0 / 5 );
+groundMatMap.anisotropy = renderer.getMaxAnisotropy();
 var groundMaterial = new THREE.MeshBasicMaterial({
-  color : 0xaa9933
+  map : groundMatMap
 });
 var groundGeom = new THREE.PlaneGeometry(2000, 2000);
 var ground = new THREE.Mesh( groundGeom, groundMaterial );
