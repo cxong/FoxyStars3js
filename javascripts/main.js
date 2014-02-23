@@ -64,29 +64,6 @@ var laneSizeTotal = 8.0;
 
 var gravity = -0.008;
 
-// Score
-function Score() {
-  this.value = 0;
-  this.scoreText = document.createElement('div');
-  this.scoreText.style.position = 'absolute';
-  this.scoreText.style.width = 100;
-  this.scoreText.style.height = 100;
-  this.scoreText.innerHTML = this.value;
-  this.scoreText.style.top = 200 + 'px';
-  this.scoreText.style.left = 200 + 'px';
-  document.body.appendChild( this.scoreText );
-  
-  this.change = function( delta ) {
-    this.value += delta;
-    this.scoreText.innerHTML = this.value;
-  }
-  this.set = function( value ) {
-    this.value = value;
-    this.scoreText.innerHTML = this.value;
-  }
-}
-var score = new Score();
-
 // Plane properties
 var dae;
 var fighter;
@@ -187,8 +164,8 @@ var Sound = function ( source ) {
   audio.appendChild( aSource );
   this.play = function () {
     audio.play();
-  }
-}
+  };
+};
 var flapSound = new Sound( 'sounds/phaseJump2.mp3' );
 var passSound = new Sound( 'sounds/powerUp2.mp3' );
 var dieSound = new Sound( 'sounds/spaceTrash4.mp3' );
@@ -229,6 +206,9 @@ function render() {
     } else {
       // Flew through pipes, success!
       score.change( 1 );
+      if ( score.value > highScore.value ) {
+        highScore.set( score.value );
+      }
       passSound.play();
     }
     console.log( "Score: " + score );
