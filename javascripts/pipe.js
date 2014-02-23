@@ -27,21 +27,16 @@ var Pipe = function( width, height, hasOpenSegment ) {
   this.width = width;
   this.height = height / numSegments;
   var geometry = new THREE.CubeGeometry( this.width, this.height, 1 );
+  var matMap = THREE.ImageUtils.loadTexture( "seamless_brick-015-512x512.png" );
   var material = new THREE.MeshBasicMaterial({
-    color : 0x00cc00
+    map : matMap
   });
-  var wireframeMaterial = new THREE.MeshBasicMaterial( {
-    color: 0x000000, wireframe: true, transparent: true
-  } );
   this.meshes = [];
   for ( var i = 0; i < numSegments; i++ ) {
     if ( i == this.openSegment ) {
       continue;
     }
-    var mesh = new THREE.Mesh( geometry.clone(), wireframeMaterial.clone() );
-    mesh.position.y = -height / 2 + height / numSegments / 2 + i * height / numSegments;
-    this.meshes.push( mesh );
-    mesh = new THREE.Mesh( geometry.clone(), material.clone() );
+    var mesh = new THREE.Mesh( geometry.clone(), material.clone() );
     mesh.position.y = -height / 2 + height / numSegments / 2 + i * height / numSegments;
     this.meshes.push( mesh );
   }
