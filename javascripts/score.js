@@ -5,7 +5,7 @@ var Score = function() {
   this.scoreText.style.top = 1 + "%";
   this.scoreText.style.left = 1 + "%";
   this.scoreText.style.fontFamily = 'Sans-serif';
-  this.scoreText.style.color = 'dark blue';
+  this.scoreText.style.color = 'DarkSlateGray';
   this.scoreText.style.fontSize = "24px";
   document.body.appendChild( this.scoreText );
   
@@ -29,7 +29,7 @@ var HighScore = function() {
   this.scoreText.style.left = 1 + "%";
   //this.scoreText.
   this.scoreText.style.fontFamily = 'Sans-serif';
-  this.scoreText.style.color = 'dark blue';
+  this.scoreText.style.color = 'DarkSlateGray';
   this.scoreText.style.fontSize = "24px";
   document.body.appendChild( this.scoreText );
   

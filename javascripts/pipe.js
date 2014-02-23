@@ -81,7 +81,7 @@ var Pipe = function( width, height, hasOpenSegment ) {
       }
     }
     return false;
-  }
+  };
 };
 
 var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
@@ -114,7 +114,7 @@ var PipeMaker = function( numPipes, numLanes, laneSizeTotal, heightTotal ) {
     // Also add a no-open-segment at the left and right
     for ( var i = 0; i < this.numLanes; i++ ) {
     var width = this.laneSizeTotal / this.numLanes;
-      var hasOpenSegment = i != 0 && i != this.numLanes - 1;
+      var hasOpenSegment = i !== 0 && i != this.numLanes - 1;
       var pipe = new Pipe( width, this.heightTotal, hasOpenSegment );
       pipe.setX( getLaneX( i ) );
       pipe.setZ( this.zStart );

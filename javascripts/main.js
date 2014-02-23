@@ -30,16 +30,6 @@ var skyGeometry = new THREE.CubeGeometry( 900, 900, 900 );
 var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
 scene.add( skyBox );
 
-// Controls overlay
-var overlayMap = THREE.ImageUtils.loadTexture( "controls_overlay.png" );
-var overlayMaterial = new THREE.MeshBasicMaterial({
-  map: overlayMap,
-  transparent: true, opacity: 0.5
-});
-var overlayGeometry = new THREE.PlaneGeometry( 800 / 96, 480 / 96 );
-var overlay = new THREE.Mesh( overlayGeometry, overlayMaterial );
-scene.add( overlay );
-
 // Game properties
 
 // Ground
@@ -163,12 +153,18 @@ var Sound = function ( source ) {
   aSource.src = source;
   audio.appendChild( aSource );
   this.play = function () {
+    audio.load();
     audio.play();
   };
 };
 var flapSound = new Sound( 'sounds/phaseJump2.mp3' );
 var passSound = new Sound( 'sounds/powerUp2.mp3' );
 var dieSound = new Sound( 'sounds/spaceTrash4.mp3' );
+
+// Splash screen
+var splash = new Splash( "controls_overlay.png", 800, 480 );
+
+var gameState = "start"; // start, playing
 
 // Reset everything
 function reset() {
@@ -180,43 +176,54 @@ function reset() {
 // Render loop
 function render() {
   requestAnimationFrame(render);
-  
-  pipes.update( scene );
 
-  if ( keysPressed.left ) {
-    fighter.flap(-1);
-  } else if ( keysPressed.right ) {
-    fighter.flap(1);
-  }
-  keysPressed = {};
-  fighter.update();
+  if ( gameState == "playing" ) {
+    pipes.update( scene );
   
-  // Check ground collision
-  if ( fighter.mesh.position.y < ground.position.y ) {
-    reset();
-    dieSound.play();
-  }
-  
-  if ( pipes.hasPipesPassed( fighter.mesh.position ) ) {
-    // A set of pipes has passed the figher; check if the figher flew through it
-    if ( pipes.isFighterCollides( fighter.mesh.position ) ) {
-      // We've hit a pipe; TODO: die
-      reset();
-      dieSound.play();
-    } else {
-      // Flew through pipes, success!
-      score.change( 1 );
-      if ( score.value > highScore.value ) {
-        highScore.set( score.value );
-      }
-      passSound.play();
+    if ( keysPressed.left ) {
+      fighter.flap(-1);
+    } else if ( keysPressed.right ) {
+      fighter.flap(1);
     }
-    console.log( "Score: " + score );
+    keysPressed = {};
+    fighter.update();
+    
+    // Check ground collision
+    if ( fighter.mesh.position.y < ground.position.y ) {
+      gameState = "start";
+      dieSound.play();
+    }
+    
+    if ( pipes.hasPipesPassed( fighter.mesh.position ) ) {
+      // A set of pipes has passed the figher; check if the figher flew through it
+      if ( pipes.isFighterCollides( fighter.mesh.position ) ) {
+        // We've hit a pipe; TODO: die
+        gameState = "start";
+        dieSound.play();
+      } else {
+        // Flew through pipes, success!
+        score.change( 1 );
+        if ( score.value > highScore.value ) {
+          highScore.set( score.value );
+        }
+        passSound.play();
+      }
+      console.log( "Score: " + score );
+    }
+    
+    pipes.destroyCompletePipes( scene );
   }
-  
-  pipes.destroyCompletePipes( scene );
   
   renderer.render(scene, camera);
+  
+  if ( gameState == "start" ) {
+    renderer.autoClear = false;
+    splash.render( renderer );
+    if ( keysPressed.left || keysPressed.right ) {
+      gameState = "playing";
+      reset();
+    }
+  }
 }
 
 function onDocumentMouseDown( event ) {
