@@ -21,6 +21,7 @@ var Score = function() {
 };
 var score = new Score();
 
+var cookieName = "foxyStarsHighScore";
 var HighScore = function() {
   this.value = getHighScore();
   this.scoreText = document.createElement('div');
@@ -36,7 +37,7 @@ var HighScore = function() {
   this.set = function( value ) {
     this.value = value;
     this.scoreText.innerHTML = "High: " + this.value;
-	document.cookie="highScore=" + this.value +";expires=Thu, 18 Dec 2114 12:00:00 GMT;path=/;domain=" + document.location.hostname;
+	document.cookie=cookieName + "=" + this.value +";expires=Thu, 18 Dec 2114 12:00:00 GMT;path=/;domain=" + document.location.hostname;
   };
   
   this.set( getHighScore() );
@@ -47,7 +48,7 @@ function getHighScore() {
 	var hs = 0;
 	for (var i = 0;i < cookies.length; ++i) {
 		var cookie = {name:cookies[i].split("=")[0], value:cookies[i].split("=")[1]};
-		if (cookie.name == "highScore") {
+		if (cookie.name.trim() == cookieName) {
 			hs = cookie.value;
 		}
 	}
